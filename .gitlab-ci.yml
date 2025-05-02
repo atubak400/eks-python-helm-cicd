@@ -18,12 +18,14 @@ build:
     - docker build -t $DOCKER_IMAGE .
     - echo "📤 Pushing Docker image to GitLab Container Registry..."
     - docker push $DOCKER_IMAGE
-
+    
 deploy:
   stage: deploy
-  image: amazon/aws-cli
+  image: amazon/aws-cli:2.15.0
   before_script:
-    - apk add --no-cache curl
+    - apk add --no-cache curl bash
+    - curl "https://s3.us-west-2.amazonaws.com/amazon-eks/1.29.2/2024-04-09/bin/linux/amd64/kubectl" -o /usr/local/bin/kubectl
+    - chmod +x /usr/local/bin/kubectl
     - curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
     - aws eks update-kubeconfig --region us-east-1 --name my-eks-cluster --role-arn arn:aws:iam::136600023723:role/EKSAdminRole
   script:
@@ -31,5 +33,4 @@ deploy:
     - helm upgrade --install my-python-app ./helm/my-python-app \
       --set image.repository=$CI_REGISTRY_IMAGE \
       --set image.tag=$CI_COMMIT_SHORT_SHA
-
 
