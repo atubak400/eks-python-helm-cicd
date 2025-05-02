@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: power3425/my-eks-python-app
+  repository: registry.gitlab.com/atubak40/my-eks-python-app
   pullPolicy: IfNotPresent
   tag: latest
 
