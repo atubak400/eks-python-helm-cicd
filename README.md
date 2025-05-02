@@ -20,7 +20,7 @@ This project builds a simple Python Flask application, containerizes it using Do
   git init --initial-branch=main
   git remote add origin git@gitlab.com:USERNAME/REPO.git
   git add .
-  git commit -m "Initial commit."
+  git commit -m "Initial commit"
   git push --set-upstream origin main
   ```
 
