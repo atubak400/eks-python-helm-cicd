@@ -10,7 +10,7 @@ before_script:
 
 build:
   stage: build
-  image: docker:latest
+  image: docker:latest  # <<< very important
   services:
     - docker:dind
   script:
