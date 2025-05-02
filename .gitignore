@@ -36,3 +36,4 @@ terraform.tfvars
 config.yml
 config.txt
 img/
+pipelinelog.txt
