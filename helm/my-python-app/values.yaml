@@ -1,9 +1,9 @@
 replicaCount: 1
 
 image:
-  repository: your-docker-image-url-here
-  tag: latest
+  repository: power3425/my-eks-python-app
   pullPolicy: IfNotPresent
+  tag: latest
 
 service:
   type: LoadBalancer
