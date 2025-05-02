@@ -31,3 +31,5 @@ terraform.tfvars
 
 # GitLab CI/CD
 .gitlab-ci-token
+
+config.yml
