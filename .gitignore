@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv/
+env/
+venv/
+
+# Docker
+*.log
+docker-compose.override.yml
+
+# Kubernetes/Helm
+*.tgz
+charts/
+release/
+
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
+terraform.tfvars
+
+# General
+*.swp
+.idea/
+.vscode/
+*.DS_Store
+
+# GitLab CI/CD
+.gitlab-ci-token
