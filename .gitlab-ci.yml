@@ -5,14 +5,15 @@ stages:
 variables:
   DOCKER_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
 
+before_script:
+  - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+
 build:
   stage: build
   image: docker:latest
   services:
     - docker:dind
   script:
-    - echo "🔑 Logging into GitLab Container Registry..."
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
     - echo "🐳 Building Docker image..."
     - docker build -t $DOCKER_IMAGE .
     - echo "📤 Pushing Docker image to GitLab Container Registry..."
@@ -20,5 +21,12 @@ build:
 
 deploy:
   stage: deploy
+  image: alpine/helm:3.14.0
   script:
-    - echo "🚀 Deployment stage - to be updated soon!"
+    - echo "🔧 Setting up Kubeconfig..."
+    - aws eks update-kubeconfig --region us-east-1 --name my-eks-cluster --role-arn arn:aws:iam::136600023723:role/EKSAdminRole
+    - echo "🚀 Deploying app with Helm..."
+    - helm upgrade --install my-python-app ./helm/my-python-app \
+        --set image.repository=$CI_REGISTRY_IMAGE \
+        --set image.tag=$CI_COMMIT_SHORT_SHA
+
