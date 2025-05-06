@@ -1,51 +1,60 @@
-# 🛠️ Mini-Milestones for Your EKS + GitLab CI/CD + Helm Project
-## 1. Set Up GitLab Repository
+# 🛠️ Mini-Milestones for EKS + GitHub Actions + Helm Project
 
-* Push your simple Python application code to a new GitLab repository.
-* Include a basic Dockerfile to containerize your app.
+## 1. Set Up GitHub Repository
+
+* Push your simple Python application code to a new GitHub repository.
+* Include a basic `Dockerfile` to containerize your app.
 
 ## 2. Container Registry Setup
 
-* Choose a container registry (GitLab Container Registry or Docker Hub).
-* Create a GitLab CI/CD secret if needed to authenticate.
+* Choose a container registry (Docker Hub or Amazon ECR).
+* Create GitHub repository secrets (`DOCKER_USERNAME`, `DOCKER_PASSWORD`, etc.) for authentication.
 
-## 3. Build and Push Docker Image Using GitLab CI/CD
+## 3. Build and Push Docker Image Using GitHub Actions
 
-* Write a `.gitlab-ci.yml` that builds the Docker image and pushes it to your registry on every code push.
+* Create a GitHub Actions workflow file at `.github/workflows/docker-build.yml`.
+* Configure it to build your Docker image and push it to your registry on every code push.
 
 ## 4. Set Up Infrastructure (Terraform or eksctl)
 
 * Create your EKS cluster, VPC, IAM roles, and node groups.
-* Make sure `kubectl` can connect to your cluster (`kubectl get nodes` should work).
+* Verify `kubectl get nodes` works from your machine.
 
 ## 5. Create Your Application Helm Chart
 
 * Use `helm create myapp` to generate a starter Helm chart.
-* Modify the default templates (`deployment.yaml`, `service.yaml`) to suit your app.
-* Package your app's container image (it will be updated later by GitLab CI).
+* Edit `deployment.yaml`, `service.yaml`, and other templates for your app.
+* Ensure the chart pulls the correct Docker image.
 
-## 6. Deploy the App to EKS Using Helm via GitLab CI/CD
+## 6. Deploy the App to EKS Using Helm via GitHub Actions
 
-* Add a Helm deployment stage to your `.gitlab-ci.yml` that installs/updates the Helm chart in your cluster.
-* Ensure your GitLab runner has access to your Kubernetes cluster (e.g., using a Kubernetes service account token).
+* Extend your GitHub Actions workflow to deploy using Helm.
+* Store kubeconfig or access credentials securely in GitHub secrets.
+* Allow your GitHub runner to authenticate and deploy to EKS.
 
 ## 7. Implement Secrets Management (AWS Secrets Manager + IRSA)
 
-* Create a Kubernetes service account linked with an IAM role that allows access to Secrets Manager.
-* Update your Python app to fetch secrets at runtime.
+* Create a Kubernetes service account linked to an IAM role.
+* Grant the IAM role permissions to read from AWS Secrets Manager.
+* Update your Python app to fetch secrets at runtime using the AWS SDK.
 
 ## 8. Set Up Logging (CloudWatch + Fluent Bit via Helm)
 
-* Install Fluent Bit on your EKS cluster using the AWS-provided Helm chart.
-* Confirm that your app logs show up in CloudWatch Logs.
+* Install Fluent Bit in the EKS cluster using the AWS-provided Helm chart.
+* Confirm application logs are appearing in AWS CloudWatch Logs.
 
 ## 9. Implement Blue-Green Deployment (Argo Rollouts via Helm)
 
-* Install Argo Rollouts on the cluster using Helm.
-* Update your app's Helm chart to use a Rollout resource instead of a standard Deployment.
-* Set your GitLab CI to trigger a rollout update on new deployments.
+* Install Argo Rollouts in your EKS cluster via Helm.
+* Update your Helm chart to use a `Rollout` instead of a standard `Deployment`.
+* Modify your GitHub Actions workflow to trigger a rollout update after a new deployment.
 
 ## 10. Test Full Flow
 
-* Push new changes to GitLab and verify: Docker build → push → Helm upgrade → Blue-Green switch → Secrets loaded → Logs appear in CloudWatch.
+* Push code changes to GitHub and confirm the following flow:
 
+  * Docker image build and push
+  * Helm chart upgrade
+  * Blue-Green switch via Argo Rollouts
+  * Secrets fetched dynamically
+  * Logs visible in CloudWatch

@@ -1,17 +1,15 @@
-# Use official Python image as base
+# Use official Python image
 FROM python:3.9-slim
 
 # Set working directory
 WORKDIR /app
 
-# Copy app files into the container
-COPY app/ .
-
-# Install dependencies
+# Copy requirements and install
+COPY app/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose the app port
-EXPOSE 5000
+# Copy application code
+COPY app/ .
 
-# Run the application
+# Command to run app
 CMD ["python", "main.py"]
