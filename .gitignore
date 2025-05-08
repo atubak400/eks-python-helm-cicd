@@ -29,6 +29,9 @@ terraform.tfvars
 .idea/
 .vscode/
 *.DS_Store
+*.txt
+*.csv
+screenshot*.png
 
 # GitLab CI/CD
 .gitlab-ci-token

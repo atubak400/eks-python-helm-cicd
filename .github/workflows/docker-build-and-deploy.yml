@@ -13,38 +13,41 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v3
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
       with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
 
     - name: Build Docker image
       run: |
-        docker build -t ${{ secrets.DOCKER_USERNAME }}/my-eks-python-app:latest .
+        docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-eks-python-app:latest .
 
-    - name: Push Docker image
+    - name: Push Docker image to ECR
       run: |
-        docker push ${{ secrets.DOCKER_USERNAME }}/my-eks-python-app:latest
+        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-eks-python-app:latest
 
-    - name: Set up kubectl
-      uses: azure/setup-kubectl@v3
-      with:
-        version: 'latest'
+    # - name: Install kubectl
+    #   run: |
+    #     curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.29.0/2024-04-16/bin/linux/amd64/kubectl
+    #     chmod +x ./kubectl
+    #     sudo mv ./kubectl /usr/local/bin/
 
-    - name: Set up Helm
-      uses: azure/setup-helm@v3
-      with:
-        version: 'latest'
+    # - name: Install Helm
+    #   run: |
+    #     curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-    - name: Update kubeconfig
-      run: |
-        aws eks update-kubeconfig --region YOUR_AWS_REGION --name YOUR_CLUSTER_NAME
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: YOUR_AWS_REGION
+    # - name: Update kubeconfig
+    #   run: |
+    #     aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name my-eks-cluster
 
-    - name: Deploy with Helm
-      run: |
-        helm upgrade --install myapp ./helm --set image.repository=${{ secrets.DOCKER_USERNAME }}/my-eks-python-app --set image.tag=latest
+    # - name: Deploy with Helm
+    #   run: |
+    #     helm upgrade --install myapp ./helm \
+    #       --set image.repository=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-eks-python-app \
+    #       --set image.tag=latest
