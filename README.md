@@ -13,3 +13,4 @@ You need Fluent Bit because CloudWatch itself cannot directly collect logs from 
 Prometheus is different from Fluent Bit because Prometheus is used mainly for metrics collection, not for logs; it scrapes numerical data like CPU usage, memory consumption, and custom application metrics from your Kubernetes pods or nodes at regular intervals, but it does not collect logs like application outputs or error messages. In other words, Prometheus answers questions like “how many requests per second”, “how much memory is used”, while Fluent Bit answers “what exactly happened inside the app” through text-based logs. If you want full observability, you usually install both: Prometheus for metrics and Fluent Bit for logs, because they solve two different but equally important problems. ✅
 
 Triggering Actions run
+Triggering Actions run
