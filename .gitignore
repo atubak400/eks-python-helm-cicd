@@ -29,7 +29,6 @@ terraform.tfvars
 .idea/
 .vscode/
 *.DS_Store
-*.txt
 *.csv
 screenshot*.png
 
