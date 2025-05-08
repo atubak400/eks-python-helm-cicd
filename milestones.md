@@ -32,15 +32,16 @@
 * Store kubeconfig or access credentials securely in GitHub secrets.
 * Allow your GitHub runner to authenticate and deploy to EKS.
 
-## 7. Implement Secrets Management (AWS Secrets Manager + IRSA)
+## 7. Set Up Logging (CloudWatch + Fluent Bit via Helm)
+
+* Install Fluent Bit in the EKS cluster using the AWS-provided Helm chart.
+* Confirm application logs are appearing in AWS CloudWatch Logs.
+
+## 8. Implement Secrets Management (AWS Secrets Manager + IRSA)
 
 * Create a Kubernetes service account linked to an IAM role.
 * Grant the IAM role permissions to read from AWS Secrets Manager.
 * Update your Python app to fetch secrets at runtime using the AWS SDK.
-
-## 8. Set Up Logging (CloudWatch + Fluent Bit via Helm)
-
-* Install Fluent Bit in the EKS cluster using the AWS-provided Helm chart.
 * Confirm application logs are appearing in AWS CloudWatch Logs.
 
 ## 9. Implement Blue-Green Deployment (Argo Rollouts via Helm)

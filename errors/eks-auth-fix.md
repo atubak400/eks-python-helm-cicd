@@ -1,0 +1,69 @@
+# 🛠️ Fixing EKS "User Cannot List Nodes" Error
+
+## ❗ Problem
+
+After creating the EKS cluster and running:
+
+```bash
+kubectl get nodes
+```
+
+you may encounter the error:
+
+```
+Error from server (Forbidden): nodes is forbidden: User "arn:aws:iam::ACCOUNT_ID:user/admin" cannot list resource "nodes" in API group "" at the cluster scope
+```
+
+## 🛠️ Root Cause
+
+The IAM user (`admin`) was **not mapped** to any Kubernetes RBAC group (like `system:masters`) inside the EKS `aws-auth` ConfigMap.
+
+By default, EKS clusters **only trust IAM roles** (not users) unless manually mapped.
+
+---
+
+## ✅ Solution
+
+1. **Assume the EKSAdminRole** that had cluster admin access:
+
+   ```bash
+   aws sts assume-role --role-arn arn:aws:iam::ACCOUNT_ID:role/EKSAdminRole --role-session-name eks-admin-session
+   export AWS_ACCESS_KEY_ID=...
+   export AWS_SECRET_ACCESS_KEY=...
+   export AWS_SESSION_TOKEN=...
+   ```
+
+2. **Edit the aws-auth ConfigMap**:
+
+   ```bash
+   kubectl edit configmap aws-auth -n kube-system
+   ```
+
+3. **Add this under `mapUsers:`**:
+
+   ```yaml
+   mapUsers: |
+     - userarn: arn:aws:iam::ACCOUNT_ID:user/admin
+       username: admin
+       groups:
+         - system:masters
+   ```
+
+4. **Save and exit**.
+
+5. **Verify** access:
+
+   ```bash
+   kubectl get nodes
+   ```
+
+✅ Now the user can manage the EKS cluster fully.
+
+---
+
+## 🛡️ How to Prevent This Next Time
+
+* When provisioning EKS clusters with Terraform, **add IAM users to `access_entries` block** too (not just roles).
+* Or, immediately after cluster creation, always update the `aws-auth` ConfigMap to add your users.
+* Prefer using IAM **roles** for programmatic access if possible (roles map more cleanly with EKS).
+* You created the EKSAdminRole so that you (or GitHub Actions, or any trusted service) can assume the role and gain admin access to the EKS cluster without directly using long-term IAM user credentials, which is more secure; however, if you also add your IAM user (admin), it makes it easier for you to quickly access and manage the cluster directly from your laptop without always needing to run aws sts assume-role, export temporary credentials, or set up a session — so adding both gives you flexibility: use the role for automation (safe) and the user for personal/manual access (convenient).

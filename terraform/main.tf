@@ -16,7 +16,6 @@ module "vpc" {
 
 data "aws_availability_zones" "available" {}
 
-
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "20.8.4"
@@ -38,8 +37,22 @@ module "eks" {
   }
 
   access_entries = {
-    admin = {
+    eks_admin_role = {
       principal_arn = "arn:aws:iam::136600023723:role/EKSAdminRole"
+      type          = "STANDARD"
+
+      policy_associations = {
+        cluster-admin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
+
+    eks_admin_user = {
+      principal_arn = "arn:aws:iam::136600023723:user/admin"
       type          = "STANDARD"
 
       policy_associations = {

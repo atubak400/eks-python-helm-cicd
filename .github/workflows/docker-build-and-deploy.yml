@@ -32,22 +32,23 @@ jobs:
       run: |
         docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-eks-python-app:latest
 
-    # - name: Install kubectl
-    #   run: |
-    #     curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.29.0/2024-04-16/bin/linux/amd64/kubectl
-    #     chmod +x ./kubectl
-    #     sudo mv ./kubectl /usr/local/bin/
+    - name: Install kubectl
+      run: |
+        curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.29.0/2024-04-16/bin/linux/amd64/kubectl
+        chmod +x ./kubectl
+        sudo mv ./kubectl /usr/local/bin/
 
-    # - name: Install Helm
-    #   run: |
-    #     curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+    - name: Install Helm
+      run: |
+        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-    # - name: Update kubeconfig
-    #   run: |
-    #     aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name my-eks-cluster
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name my-eks-cluster
 
-    # - name: Deploy with Helm
-    #   run: |
-    #     helm upgrade --install myapp ./helm \
-    #       --set image.repository=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-eks-python-app \
-    #       --set image.tag=latest
+    - name: Deploy with Helm
+      run: |
+        helm upgrade --install myapp ./helm \
+          --set image.repository=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-eks-python-app \
+          --set image.tag=latest
+          --atomic
