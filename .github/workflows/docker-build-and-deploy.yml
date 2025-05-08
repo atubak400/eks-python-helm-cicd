@@ -47,6 +47,15 @@ jobs:
     - name: Test kubectl get nodes
       run: |
         kubectl get nodes
+  
+    - name: Deploy Fluent Bit to EKS
+      run: |
+        helm repo add aws-observability https://aws.github.io/eks-charts
+        helm repo update
+        kubectl create namespace amazon-cloudwatch --dry-run=client -o yaml | kubectl apply -f -
+        helm upgrade --install fluent-bit aws-observability/aws-for-fluent-bit \
+          --namespace amazon-cloudwatch \
+          -f helm/fluentbit-values.yaml
 
     - name: Build Docker image
       run: |
