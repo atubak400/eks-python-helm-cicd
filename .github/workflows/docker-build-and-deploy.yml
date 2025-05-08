@@ -38,6 +38,12 @@ jobs:
         chmod +x ./kubectl
         sudo mv ./kubectl /usr/local/bin/
 
+    - name: Install aws-iam-authenticator
+      run: |
+        curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.29.0/2024-04-16/bin/linux/amd64/aws-iam-authenticator
+        chmod +x ./aws-iam-authenticator
+        sudo mv ./aws-iam-authenticator /usr/local/bin/
+
     - name: Install Helm
       run: |
         curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
@@ -50,5 +56,5 @@ jobs:
       run: |
         helm upgrade --install myapp ./helm \
           --set image.repository=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-eks-python-app \
-          --set image.tag=latest
+          --set image.tag=latest \
           --atomic
