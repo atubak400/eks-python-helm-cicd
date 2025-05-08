@@ -50,7 +50,8 @@ jobs:
 
     - name: Update kubeconfig
       run: |
-        aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name my-eks-cluster
+        aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name my-eks-cluster --alias my-eks-cluster
+        kubectl config set-credentials arn:aws:eks:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:cluster/my-eks-cluster --exec-command aws --exec-arg "eks" --exec-arg "get-token" --exec-arg "--region" --exec-arg "${{ secrets.AWS_REGION }}" --exec-arg "--cluster-name" --exec-arg "my-eks-cluster"
 
     - name: Deploy with Helm
       env:
