@@ -12,6 +12,7 @@ permissions:
 env:
   AWS_REGION: us-east-1
   AWS_ACCOUNT_ID: 136600023723
+  ECR_REPOSITORY: my-eks-python-app
 
 jobs:
   test-cluster-connection:
@@ -40,3 +41,9 @@ jobs:
     - name: Test kubectl get nodes
       run: |
         kubectl get nodes
+
+    - name: Build Docker image
+      run: |
+        docker build -t my-python-app:latest .
+
+

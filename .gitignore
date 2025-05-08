@@ -34,6 +34,7 @@ screenshot*.png
 
 # GitLab CI/CD
 .gitlab-ci-token
+trust-policy.json
 
 config.yml
 config.txt
