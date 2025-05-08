@@ -64,7 +64,9 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_REGION: ${{ secrets.AWS_REGION }}
       run: |
-        kubectl get nodes
+        kubectl config view  
+        aws sts get-caller-identity
+        aws eks get-token --region ${{ secrets.AWS_REGION }} --cluster-name my-eks-cluster
 
     - name: Deploy with Helm
       env:
