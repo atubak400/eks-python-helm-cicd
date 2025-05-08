@@ -55,8 +55,8 @@ jobs:
         kubectl config set-credentials github-actions-user \
           --exec-command aws \
           --exec-api-version "client.authentication.k8s.io/v1" \
-          --exec-arg "eks" --exec-arg "get-token" --exec-arg "--region" --exec-arg "${{ secrets.AWS_REGION }}" --exec-arg "--cluster-name" --exec-arg "my-eks-cluster"
-        kubectl config set-context --current --user=github-actions-user
+          --exec-arg "eks" --exec-arg "get-token" --exec-arg "--region" --exec-arg "${{ secrets.AWS_REGION }}" --exec-arg "--cluster-name" --exec-arg "my-eks-cluster" \
+          --exec-interactive-mode Never
 
     - name: Deploy with Helm
       env:
