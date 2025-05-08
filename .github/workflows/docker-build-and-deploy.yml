@@ -68,6 +68,11 @@ jobs:
         aws sts get-caller-identity
         aws eks get-token --region ${{ secrets.AWS_REGION }} --cluster-name my-eks-cluster
 
+    - name: Refresh authentication token
+      run: |
+        aws eks get-token --region ${{ secrets.AWS_REGION }} --cluster-name my-eks-cluster
+        kubectl config set-credentials github-actions-user --exec-command aws --exec-arg "eks" --exec-arg "get-token" --exec-arg "--region" --exec-arg "${{ secrets.AWS_REGION }}" --exec-arg "--cluster-name" --exec-arg "my-eks-cluster"
+
     - name: Deploy with Helm
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
