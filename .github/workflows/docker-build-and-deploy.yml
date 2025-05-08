@@ -13,6 +13,7 @@ env:
   AWS_REGION: us-east-1
   AWS_ACCOUNT_ID: 136600023723
   ECR_REPOSITORY: my-eks-python-app
+  HELM_RELEASE_NAME: my-eks-python-app
 
 jobs:
   test-cluster-connection:
@@ -34,6 +35,11 @@ jobs:
       with:
         version: v1.30.0
 
+    - name: Install Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: v3.14.0
+
     - name: Update kubeconfig
       run: |
         aws eks update-kubeconfig --region us-east-1 --name my-eks-python-cluster
@@ -51,3 +57,7 @@ jobs:
         aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
         docker tag my-python-app:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
         docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+
+    - name: Deploy using Helm
+      run: |
+        helm upgrade --install $HELM_RELEASE_NAME ./helm --namespace default --create-namespace
