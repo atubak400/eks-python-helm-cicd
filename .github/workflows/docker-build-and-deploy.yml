@@ -34,9 +34,10 @@ jobs:
 
     - name: Install kubectl
       run: |
-        curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.29.0/2024-04-16/bin/linux/amd64/kubectl
-        chmod +x ./kubectl
-        sudo mv ./kubectl /usr/local/bin/
+        curl -LO "https://dl.k8s.io/release/v1.29.0/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
+
 
     - name: Install aws-iam-authenticator
       run: |
@@ -51,7 +52,8 @@ jobs:
     - name: Update kubeconfig
       run: |
         aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name my-eks-cluster --alias my-eks-cluster
-        kubectl config set-credentials arn:aws:eks:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:cluster/my-eks-cluster --exec-command aws --exec-arg "eks" --exec-arg "get-token" --exec-arg "--region" --exec-arg "${{ secrets.AWS_REGION }}" --exec-arg "--cluster-name" --exec-arg "my-eks-cluster"
+        kubectl config set-credentials github-actions-user --exec-command aws --exec-arg "eks" --exec-arg "get-token" --exec-arg "--region" --exec-arg "${{ secrets.AWS_REGION }}" --exec-arg "--cluster-name" --exec-arg "my-eks-cluster"
+        kubectl config set-context --current --user=github-actions-user
 
     - name: Deploy with Helm
       env:
