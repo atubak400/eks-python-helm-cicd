@@ -1,85 +1,42 @@
-name: Build and Deploy to EKS
+name: Test EKS Cluster Connection
 
 on:
   push:
     branches:
       - main
 
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ACCOUNT_ID: 136600023723
+
 jobs:
-  build-and-deploy:
+  test-cluster-connection:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Configure AWS credentials
+    - name: Configure AWS credentials (OIDC)
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
-
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
-
-    - name: Build Docker image
-      run: |
-        docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-eks-python-app:latest .
-
-    - name: Push Docker image to ECR
-      run: |
-        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-eks-python-app:latest
+        role-to-assume: arn:aws:iam::136600023723:role/GitHubActionsEKSRole
+        role-session-name: GitHubActionsSession
+        aws-region: us-east-1
 
     - name: Install kubectl
-      run: |
-        curl -LO "https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl"
-        chmod +x kubectl
-        sudo mv kubectl /usr/local/bin/
-
-
-    - name: Install aws-iam-authenticator
-      run: |
-        curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.29.0/2024-04-16/bin/linux/amd64/aws-iam-authenticator
-        chmod +x ./aws-iam-authenticator
-        sudo mv ./aws-iam-authenticator /usr/local/bin/
-
-    - name: Install Helm
-      run: |
-        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      uses: azure/setup-kubectl@v3
+      with:
+        version: v1.30.0
 
     - name: Update kubeconfig
       run: |
-        aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name my-eks-cluster
-        kubectl config set-credentials github-actions-user \
-          --exec-command aws \
-          --exec-api-version "client.authentication.k8s.io/v1" \
-          --exec-arg "eks" --exec-arg "get-token" --exec-arg "--region" --exec-arg "${{ secrets.AWS_REGION }}" --exec-arg "--cluster-name" --exec-arg "my-eks-cluster" \
-          --exec-interactive-mode Never
+        aws eks update-kubeconfig --region us-east-1 --name my-eks-python-cluster
 
-    - name: Verify cluster access
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: ${{ secrets.AWS_REGION }}
+    - name: Test kubectl get nodes
       run: |
-        kubectl config view  
-        aws sts get-caller-identity
-        aws eks get-token --region ${{ secrets.AWS_REGION }} --cluster-name my-eks-cluster
-
-    - name: Refresh authentication token
-      run: |
-        aws eks get-token --region ${{ secrets.AWS_REGION }} --cluster-name my-eks-cluster
-        kubectl config set-credentials github-actions-user --exec-command aws --exec-arg "eks" --exec-arg "get-token" --exec-arg "--region" --exec-arg "${{ secrets.AWS_REGION }}" --exec-arg "--cluster-name" --exec-arg "my-eks-cluster"
-
-    - name: Deploy with Helm
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: ${{ secrets.AWS_REGION }}
-      run: |
-        helm upgrade --install myapp ./helm \
-          --set image.repository=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-eks-python-app \
-          --set image.tag=latest \
-          --atomic
+        kubectl get nodes

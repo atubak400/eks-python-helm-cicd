@@ -1,3 +1,9 @@
+provider "aws" {
+  region = var.aws_region
+}
+
+data "aws_availability_zones" "available" {}
+
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "5.1.1"
@@ -13,8 +19,6 @@ module "vpc" {
   single_nat_gateway   = true
   enable_dns_hostnames = true
 }
-
-data "aws_availability_zones" "available" {}
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
@@ -50,9 +54,22 @@ module "eks" {
         }
       }
     }
+    github_actions_role = {
+      principal_arn = "arn:aws:iam::136600023723:role/GitHubActionsEKSRole"
+      type          = "STANDARD"
+
+      policy_associations = {
+        cluster-admin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
 
     eks_admin_user = {
-      principal_arn = "arn:aws:iam::136600023723:user/admin"
+      principal_arn = "arn:aws:iam::136600023723:user/kingsley"
       type          = "STANDARD"
 
       policy_associations = {

@@ -1,61 +1,82 @@
-# 🛠️ Mini-Milestones for EKS + GitHub Actions + Helm Project
+# 🛠️ Updated Mini-Milestones for EKS + GitHub Actions + Helm Project
 
 ## 1. Set Up GitHub Repository
 
-* Push your simple Python application code to a new GitHub repository.
+* Push your Python application code to a new GitHub repository.
 * Include a basic `Dockerfile` to containerize your app.
 
-## 2. Container Registry Setup
+## 2. Container Registry Setup (Amazon ECR with OIDC Authentication)
 
-* Choose a container registry (Docker Hub or Amazon ECR).
-* Create GitHub repository secrets (`DOCKER_USERNAME`, `DOCKER_PASSWORD`, etc.) for authentication.
+* Create an Amazon ECR repository to store your Docker images.
+* Ensure your GitHub repository is linked to your **GitHubActionsEKSRole** via OIDC.
+* In your GitHub Secrets, store:
+
+  * `AWS_REGION` — your region (e.g., `eu-west-2`)
+  * `ECR_REPOSITORY_URI` — your ECR repo URI (e.g., `136600023723.dkr.ecr.eu-west-2.amazonaws.com/myapp`)
+* Update your GitHub Actions workflow to:
+
+  * Use `aws-actions/configure-aws-credentials` with OIDC.
+  * Log in to ECR and push Docker images securely without permanent AWS keys.
 
 ## 3. Build and Push Docker Image Using GitHub Actions
 
 * Create a GitHub Actions workflow file at `.github/workflows/docker-build.yml`.
-* Configure it to build your Docker image and push it to your registry on every code push.
+* Configure it to:
 
-## 4. Set Up Infrastructure (Terraform or eksctl)
+  * Authenticate to AWS using OIDC.
+  * Build the Docker image.
+  * Tag and push the image to your ECR repository on every code push.
 
-* Create your EKS cluster, VPC, IAM roles, and node groups.
-* Verify `kubectl get nodes` works from your machine.
+## 4. Infrastructure Already Set Up (EKS, VPC, IAM)
+
+* EKS cluster, VPC, node groups, and IAM roles were already set up with Terraform.
+* Simply verify access works by running:
+
+```bash
+kubectl get nodes
+```
+
+* No need to recreate infrastructure unless you destroy and rebuild later.
 
 ## 5. Create Your Application Helm Chart
 
 * Use `helm create myapp` to generate a starter Helm chart.
-* Edit `deployment.yaml`, `service.yaml`, and other templates for your app.
-* Ensure the chart pulls the correct Docker image.
+* Edit `deployment.yaml`, `service.yaml`, and `values.yaml` to match your app.
+* Ensure the Helm chart pulls your Docker image from ECR.
 
 ## 6. Deploy the App to EKS Using Helm via GitHub Actions
 
-* Extend your GitHub Actions workflow to deploy using Helm.
-* Store kubeconfig or access credentials securely in GitHub secrets.
-* Allow your GitHub runner to authenticate and deploy to EKS.
+* Extend your GitHub Actions workflow to include a Helm deployment step after pushing the Docker image.
+* Store any kubeconfig or authentication details safely if needed, but prefer assuming roles with OIDC.
+* Deploy your app using Helm from the GitHub Actions runner to your EKS cluster.
 
 ## 7. Set Up Logging (CloudWatch + Fluent Bit via Helm)
 
-* Install Fluent Bit in the EKS cluster using the AWS-provided Helm chart.
-* Confirm application logs are appearing in AWS CloudWatch Logs.
+* Install Fluent Bit into your EKS cluster using AWS’s official Helm chart.
+* Configure Fluent Bit to send logs from your application pods to Amazon CloudWatch Logs.
+* Confirm logs are appearing in the correct CloudWatch log group.
 
 ## 8. Implement Secrets Management (AWS Secrets Manager + IRSA)
 
-* Create a Kubernetes service account linked to an IAM role.
-* Grant the IAM role permissions to read from AWS Secrets Manager.
-* Update your Python app to fetch secrets at runtime using the AWS SDK.
-* Confirm application logs are appearing in AWS CloudWatch Logs.
+* Create a Kubernetes ServiceAccount linked to an IAM Role (IRSA setup).
+* Grant the IAM Role permissions to access secrets from AWS Secrets Manager.
+* Update your Python application to fetch secrets at runtime using the AWS SDK.
+* Validate secret retrieval through application logs.
 
 ## 9. Implement Blue-Green Deployment (Argo Rollouts via Helm)
 
-* Install Argo Rollouts in your EKS cluster via Helm.
-* Update your Helm chart to use a `Rollout` instead of a standard `Deployment`.
-* Modify your GitHub Actions workflow to trigger a rollout update after a new deployment.
+* Install Argo Rollouts into your EKS cluster using Helm.
+* Update your Helm chart to use `Rollout` resources instead of standard `Deployment`.
+* Modify your GitHub Actions workflow to apply Rollouts during deployment updates.
+* Enable traffic shifting strategies to smoothly switch between versions.
 
 ## 10. Test Full Flow
 
-* Push code changes to GitHub and confirm the following flow:
+* Push code changes to GitHub and confirm the complete automation works:
 
-  * Docker image build and push
-  * Helm chart upgrade
-  * Blue-Green switch via Argo Rollouts
-  * Secrets fetched dynamically
-  * Logs visible in CloudWatch
+  * Docker image builds and pushes to ECR.
+  * Helm chart upgrades and application is redeployed.
+  * Blue-Green deployment succeeds via Argo Rollouts.
+  * Application secrets are fetched securely at runtime.
+  * Logs are available and readable in CloudWatch.
+
