@@ -1,17 +1,103 @@
-# Readme
-Triggering Actions run
-Triggering Actions run
-Triggering Actions run
-Triggering Actions run
-Triggering Actions run
-Triggering Actions run
-Triggering Actions run
+# EKS Python App Deployment Project - Full Milestone Walkthrough
 
+This README describes how we successfully built and deployed a Python application to AWS EKS, using Terraform, Docker, Helm, ECR, GitHub Actions (OIDC authentication), Fluent Bit, and CloudWatch.
 
-You need Fluent Bit because CloudWatch itself cannot directly collect logs from inside your Kubernetes pods; CloudWatch is only a storage and visualization service — it doesn't automatically pull logs from EKS. Fluent Bit acts like a log shipper inside your cluster: it sits as a lightweight agent on the nodes, collects logs from your containers (from stdout and stderr), processes them if needed, and then sends (pushes) them securely into CloudWatch Logs. Without Fluent Bit (or a similar agent), your application logs would stay trapped inside the Kubernetes cluster and would never reach CloudWatch for centralized monitoring, alerting, or troubleshooting. ✅
+## 1. Set Up GitHub Repository
 
-Prometheus is different from Fluent Bit because Prometheus is used mainly for metrics collection, not for logs; it scrapes numerical data like CPU usage, memory consumption, and custom application metrics from your Kubernetes pods or nodes at regular intervals, but it does not collect logs like application outputs or error messages. In other words, Prometheus answers questions like “how many requests per second”, “how much memory is used”, while Fluent Bit answers “what exactly happened inside the app” through text-based logs. If you want full observability, you usually install both: Prometheus for metrics and Fluent Bit for logs, because they solve two different but equally important problems. ✅
+* Created a GitHub repo `eks-python-helm-cicd`.
+* Pushed the Flask Python app, Dockerfile, Terraform files, and Helm chart into the repo.
+* Created `.github/workflows/main.yml` GitHub Actions workflow file.
 
-Triggering Actions run
-Triggering Actions run
-Triggering Actions run
+## 2. Container Registry Setup (Amazon ECR)
+
+* Manually created an ECR repo: `my-eks-python-app`.
+* We did **not** store `AWS_REGION` or `ECR_REPOSITORY_URI` as GitHub secrets.
+* Instead, we used direct environment variables in the GitHub Actions file.
+* OIDC Role `GitHubActionsEKSRole` was set up properly.
+
+## 3. Build and Push Docker Image Using GitHub Actions
+
+* GitHub Actions workflow builds the Docker image for every push.
+* Logs in securely to ECR using OIDC.
+* Pushes the image to the `my-eks-python-app` ECR repository.
+
+## 4. Infrastructure Already Set Up (EKS, VPC, IAM)
+
+* We used Terraform to deploy VPC, EKS cluster, node groups, and IAM roles.
+* Terraform modules were used (Terraform AWS modules).
+* Confirmed EKS cluster is working by running:
+
+```bash
+kubectl get nodes
+```
+
+## 5. Create Your Application Helm Chart
+
+* Created a minimal Helm chart manually:
+
+  * `helm/Chart.yaml`
+  * `helm/values.yaml`
+  * `helm/templates/deployment.yaml`
+  * `helm/templates/service.yaml`
+* Configured the Helm chart to pull the Docker image from ECR.
+* Service type was set to `LoadBalancer` for external access.
+
+## 6. Deploy the App to EKS Using Helm via GitHub Actions
+
+* Extended the GitHub Actions workflow.
+* After pushing the Docker image, the workflow deploys/updates the app on EKS using Helm.
+* Every GitHub push now automatically redeploys a new version.
+
+## 7. Set Up Logging (CloudWatch + Fluent Bit via Helm)
+
+* Created an IAM Policy `EKSFluentBitPolicy` allowing logs push to CloudWatch.
+* Created a Role `EKSFluentBitRole` with OIDC trust for Kubernetes ServiceAccount.
+* Created a `helm/fluentbit-values.yaml` to configure Fluent Bit.
+* Updated GitHub Actions to deploy Fluent Bit automatically using Helm.
+* Fluent Bit runs as DaemonSet and sends pod logs to CloudWatch.
+* After fixing an OIDC trust mistake, Fluent Bit started successfully sending logs.
+
+## 8. (Planned for next) - Implement Secrets Management
+
+* Will integrate AWS Secrets Manager with Kubernetes (IRSA).
+
+## 9. (Planned for next) - Implement Blue-Green Deployment with Argo Rollouts
+
+* Will install Argo Rollouts to achieve progressive delivery.
+
+## 10. Test Full Flow
+
+* Every GitHub push triggers:
+
+  * Docker build
+  * Docker push
+  * Helm upgrade
+  * Fluent Bit already deployed
+* Flask app is accessible externally via ELB.
+* Logs are visible in CloudWatch.
+
+---
+
+# Conclusion
+
+This project builds a **full production-ready pipeline** using AWS best practices:
+
+* Secure (OIDC, no hardcoded AWS keys)
+* Automated (CI/CD with GitHub Actions)
+* Observable (logs via CloudWatch)
+* Scalable (EKS-managed nodes)
+
+---
+
+# Next Steps
+
+* Set up Secrets Manager (IRSA).
+* Set up Argo Rollouts.
+* Add monitoring with Prometheus/Grafana.
+
+---
+
+# Author
+
+Kingsley Atuba
+

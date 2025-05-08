@@ -59,7 +59,7 @@ kubectl get nodes
   * Pull the latest image.
   * Upgrade or install the app on your EKS cluster.
 
-## 7. Set Up Logging (CloudWatch + Fluent Bit)
+## 7. Set Up Logging (CloudWatch + Fluent Bit + prometeus)
 
 * Install Fluent Bit into EKS using AWS’s official Helm chart.
 * Configure Fluent Bit to send pod logs to Amazon CloudWatch Logs.
