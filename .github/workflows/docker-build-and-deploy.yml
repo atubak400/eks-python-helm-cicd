@@ -51,8 +51,12 @@ jobs:
 
     - name: Update kubeconfig
       run: |
-        aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name my-eks-cluster --alias my-eks-cluster
-        kubectl config set-credentials github-actions-user --exec-command aws --exec-arg "eks" --exec-arg "get-token" --exec-arg "--region" --exec-arg "${{ secrets.AWS_REGION }}" --exec-arg "--cluster-name" --exec-arg "my-eks-cluster"
+        aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name my-eks-cluster
+        kubectl config set-credentials github-actions-user \
+          --exec-command aws \
+          --exec-api-version "client.authentication.k8s.io/v1" \
+          --exec-arg "eks" --exec-arg "get-token" --exec-arg "--region" --exec-arg "${{ secrets.AWS_REGION }}" --exec-arg "--cluster-name" --exec-arg "my-eks-cluster" \
+          --exec-interactive-mode Never
         kubectl config set-context --current --user=github-actions-user
 
     - name: Deploy with Helm
